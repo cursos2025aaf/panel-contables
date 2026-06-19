@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IAGENTES.TECH — Panel Contable</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#0A2540;
+  --naranja:#ea580c;
+  --naranja-light:#fff7ed;
+  --naranja-dark:#c2410c;
+  --amarillo:#f59e0b;
+  --rojo:#dc2626;
+  --verde:#16a34a;
+  --azul:#2563eb;
+  --gris:#64748b;
+  --bg:#f8fafc;
+  --white:#ffffff;
+  --border:#e2e8f0;
+  --text:#0f172a;
+  --text-soft:#475569;
+  --text-muted:#94a3b8;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ── HEADER HORIZONTAL ── */
+.hdr{background:var(--navy);border-bottom:3px solid var(--naranja);padding:0 28px;display:flex;align-items:center;gap:0;position:sticky;top:0;z-index:200;height:52px;}
+.logo-wrap{display:flex;align-items:center;gap:8px;padding-right:24px;border-right:1px solid rgba(255,255,255,.1);}
+.logo-text{font-size:1.05rem;font-weight:900;white-space:nowrap;}
+.logo-text .li{color:#3B82F6;font-style:italic;}
+.logo-text .la{color:#fff;}
+.logo-text .lt{color:#3B82F6;}
+.logo-tag{background:var(--naranja);color:#fff;font-size:.5rem;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.5px;white-space:nowrap;}
+.hdr-nav{display:flex;align-items:center;gap:2px;padding:0 20px;flex:1;}
+.hdr-nav-item{padding:0 14px;height:52px;display:flex;align-items:center;font-size:.72rem;font-weight:600;color:rgba(255,255,255,.5);cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;}
+.hdr-nav-item:hover{color:#fff;background:rgba(255,255,255,.05);}
+.hdr-nav-item.active{color:#fff;border-bottom-color:var(--naranja);}
+.hdr-fecha{font-size:.65rem;color:rgba(255,255,255,.4);white-space:nowrap;padding-left:16px;border-left:1px solid rgba(255,255,255,.1);}
+
+/* ── MAIN ── */
+.main{padding:20px 28px;max-width:1400px;margin:0 auto;}
+.page{display:none;}
+.page.active{display:block;}
+
+/* ── KPI STRIP ── */
+.kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
+.kpi-card{background:var(--white);border-radius:10px;padding:14px 16px;box-shadow:0 1px 4px rgba(0,0,0,.06);border:1px solid var(--border);border-left:4px solid var(--naranja);}
+.kpi-card.verde{border-left-color:var(--verde);}
+.kpi-card.rojo{border-left-color:var(--rojo);}
+.kpi-card.amarillo{border-left-color:var(--amarillo);}
+.kpi-card.azul{border-left-color:var(--azul);}
+.kpi-num{font-size:1.8rem;font-weight:800;color:var(--text);line-height:1;}
+.kpi-lbl{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-top:4px;}
+.kpi-trend{font-size:.65rem;font-weight:600;margin-top:2px;}
+.trend-up{color:var(--verde);}
+.trend-down{color:var(--rojo);}
+.trend-neutral{color:var(--text-muted);}
+
+/* ── SECCIÓN TITLE ── */
+.stitle{font-size:.62rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;margin-top:20px;display:flex;align-items:center;gap:8px;}
+.stitle::after{content:'';flex:1;height:1px;background:var(--border);}
+.stitle:first-child{margin-top:0;}
+
+/* ── DOS Y TRES COLUMNAS ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+
+/* ── TABLA CLIENTES ── */
+.table-wrap{background:var(--white);border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);overflow:hidden;border:1px solid var(--border);}
+.data-table{width:100%;border-collapse:collapse;}
+.data-table th{background:var(--navy);color:#e2e8f0;font-size:.62rem;font-weight:700;padding:9px 12px;text-align:left;letter-spacing:.4px;text-transform:uppercase;}
+.data-table td{padding:9px 12px;font-size:.75rem;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle;}
+.data-table tr:hover td{background:#fafafa;cursor:pointer;}
+.data-table tr:last-child td{border-bottom:none;}
+
+/* ── BADGES ── */
+.badge{display:inline-block;font-size:.55rem;font-weight:800;padding:2px 7px;border-radius:4px;letter-spacing:.3px;text-transform:uppercase;}
+.b-aldia{background:#dcfce7;color:#15803d;}
+.b-deuda{background:#fee2e2;color:#dc2626;}
+.b-inactivo{background:#f1f5f9;color:#64748b;}
+.b-nuevo{background:#dbeafe;color:#1d4ed8;}
+.b-presentado{background:#dcfce7;color:#15803d;}
+.b-pendiente{background:#fef9c3;color:#854d0e;}
+.b-vencido{background:#fee2e2;color:#dc2626;}
+.b-proceso{background:#dbeafe;color:#1d4ed8;}
+
+/* ── VENCIMIENTOS ── */
+.venc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;}
+.venc-card{background:var(--white);border-radius:10px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,.06);border:1px solid var(--border);cursor:pointer;transition:transform .1s;}
+.venc-card:hover{transform:translateY(-1px);}
+.venc-card.urg{border-top:3px solid var(--rojo);}
+.venc-card.prox{border-top:3px solid var(--amarillo);}
+.venc-card.ok{border-top:3px solid var(--verde);}
+.venc-impuesto{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--text-muted);}
+.venc-cliente{font-size:.78rem;font-weight:700;color:var(--text);margin-top:3px;}
+.venc-fecha{font-size:.72rem;color:var(--text-soft);margin-top:6px;}
+.venc-dias{font-size:.65rem;font-weight:700;margin-top:2px;}
+
+/* ── ALERTAS ── */
+.alerta-item{display:flex;align-items:flex-start;gap:10px;background:var(--white);border-radius:10px;padding:10px 14px;box-shadow:0 1px 4px rgba(0,0,0,.06);border:1px solid var(--border);margin-bottom:6px;cursor:pointer;}
+.alerta-item.critico{border-left:4px solid var(--rojo);}
+.alerta-item.atencion{border-left:4px solid var(--amarillo);}
+.alerta-item.info{border-left:4px solid var(--azul);}
+.alerta-icon{font-size:.9rem;flex-shrink:0;margin-top:1px;}
+.alerta-text{font-size:.75rem;font-weight:700;color:var(--text);}
+.alerta-meta{font-size:.62rem;color:var(--text-muted);margin-top:2px;}
+
+/* ── HONORARIOS ── */
+.hon-resumen{background:var(--white);border-radius:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06);border:1px solid var(--border);}
+.hon-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);}
+.hon-row:last-child{border-bottom:none;}
+.hon-label{font-size:.72rem;color:var(--text-soft);}
+.hon-val{font-size:.85rem;font-weight:800;}
+
+/* ── BOTONES ── */
+.btn-primary{background:var(--naranja);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:.72rem;font-weight:700;cursor:pointer;}
+.btn-primary:hover{background:var(--naranja-dark);}
+.btn-add{background:var(--bg);border:1px dashed #cbd5e1;border-radius:6px;padding:5px 12px;font-size:.72rem;font-weight:600;color:var(--gris);cursor:pointer;}
+.btn-add:hover{background:var(--border);}
+.actions-bar{padding:10px 14px;border-top:1px solid var(--border);background:#fafafa;display:flex;gap:8px;}
+
+/* ── MODAL ── */
+.moverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;align-items:center;justify-content:center;padding:20px;}
+.moverlay.open{display:flex;}
+.modal{background:#fff;border-radius:16px;padding:24px;max-width:480px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);max-height:90vh;overflow-y:auto;}
+.modal h3{font-size:1rem;font-weight:700;margin-bottom:14px;color:var(--text);}
+.modal label{font-size:.72rem;font-weight:700;color:var(--gris);display:block;margin-bottom:4px;margin-top:12px;}
+.modal input,.modal select,.modal textarea{width:100%;font-size:.82rem;border:1px solid var(--border);border-radius:8px;padding:8px 12px;outline:none;color:var(--text);background:#fff;}
+.modal input:focus,.modal select:focus{border-color:var(--naranja);}
+.mactions{display:flex;gap:8px;margin-top:18px;}
+.mbtn-save{flex:1;background:var(--naranja);color:#fff;border:none;border-radius:8px;padding:10px;font-size:.82rem;font-weight:700;cursor:pointer;}
+.mbtn-save:hover{background:var(--naranja-dark);}
+.mbtn-cancel{background:#f1f5f9;color:var(--gris);border:none;border-radius:8px;padding:10px 16px;font-size:.82rem;cursor:pointer;}
+.mbtn-del{background:#fee2e2;color:var(--rojo);border:none;border-radius:8px;padding:10px 16px;font-size:.82rem;cursor:pointer;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1024px){.kpi-strip{grid-template-columns:repeat(3,1fr);}.hdr-nav{display:none;}}
+@media(max-width:600px){.kpi-strip{grid-template-columns:repeat(2,1fr);}.two-col{grid-template-columns:1fr;}.three-col{grid-template-columns:1fr;}.main{padding:12px;}}
+</style>
+</head>
+<body>
+
+<!-- HEADER CON NAV HORIZONTAL -->
+<div class="hdr">
+  <div class="logo-wrap">
+    <div class="logo-text"><span class="li">i</span><span class="la">AGENTES</span><span class="lt">.TECH</span></div>
+    <div class="logo-tag">📊 PANEL CONTABLE</div>
+  </div>
+  <nav class="hdr-nav">
+    <div class="hdr-nav-item active" onclick="showPage('dashboard',this)">Dashboard</div>
+    <div class="hdr-nav-item" onclick="showPage('clientes',this)">Clientes</div>
+    <div class="hdr-nav-item" onclick="showPage('vencimientos',this)">Vencimientos AFIP</div>
+    <div class="hdr-nav-item" onclick="showPage('honorarios',this)">Honorarios</div>
+    <div class="hdr-nav-item" onclick="showPage('alertas',this)">Alertas</div>
+  </nav>
+  <div class="hdr-fecha" id="fecha"></div>
+</div>
+
+<div class="main">
+
+  <!-- PÁGINA: DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div class="kpi-strip" id="kpiStrip"></div>
+    <div class="two-col">
+      <div>
+        <div class="stitle">Vencimientos próximos — 30 días</div>
+        <div id="dashVenc"></div>
+      </div>
+      <div>
+        <div class="stitle">Alertas activas</div>
+        <div id="dashAlertas"></div>
+      </div>
+    </div>
+    <div class="stitle" style="margin-top:20px;">Clientes con novedades esta semana</div>
+    <div class="table-wrap">
+      <table class="data-table" id="dashClientes">
+        <thead><tr>
+          <th>Cliente</th><th>Servicio</th><th>Próx. vencimiento</th><th>Estado</th><th>Honorarios</th>
+        </tr></thead>
+        <tbody id="dashClientesTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PÁGINA: CLIENTES -->
+  <div class="page" id="page-clientes">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div>
+        <div style="font-size:1rem;font-weight:800;">Cartera de clientes</div>
+        <div style="font-size:.72rem;color:var(--text-muted);margin-top:2px;">Gestión completa de clientes del estudio</div>
+      </div>
+      <button class="btn-primary" onclick="abrirModalCliente(-1)">+ Nuevo cliente</button>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr>
+          <th>Empresa / Cliente</th><th>Rubro</th><th>Servicio</th><th>Honorarios/mes</th><th>Estado</th><th>Contador</th>
+        </tr></thead>
+        <tbody id="clientesTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PÁGINA: VENCIMIENTOS -->
+  <div class="page" id="page-vencimientos">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div>
+        <div style="font-size:1rem;font-weight:800;">Vencimientos AFIP / ARCA</div>
+        <div style="font-size:.72rem;color:var(--text-muted);margin-top:2px;">Control de presentaciones y pagos</div>
+      </div>
+      <button class="btn-primary" onclick="abrirModalVenc(-1)">+ Nuevo vencimiento</button>
+    </div>
+    <div class="venc-grid" id="vencGrid"></div>
+  </div>
+
+  <!-- PÁGINA: HONORARIOS -->
+  <div class="page" id="page-honorarios">
+    <div style="font-size:1rem;font-weight:800;margin-bottom:16px;">Honorarios del estudio</div>
+    <div class="three-col">
+      <div class="hon-resumen" id="honResumen"></div>
+      <div style="grid-column:span 2;">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr>
+              <th>Cliente</th><th>Honorarios/mes</th><th>Estado cobro</th><th>Último pago</th>
+            </tr></thead>
+            <tbody id="honTbody"></tbody>
+          </table>
+          <div class="actions-bar">
+            <button class="btn-add" onclick="abrirModalCliente(-1)">+ Agregar cliente</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PÁGINA: ALERTAS -->
+  <div class="page" id="page-alertas">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div style="font-size:1rem;font-weight:800;">Alertas y recordatorios</div>
+      <button class="btn-primary" onclick="abrirModalAlerta(-1)">+ Nueva alerta</button>
+    </div>
+    <div class="two-col">
+      <div>
+        <div class="stitle">Críticas</div>
+        <div id="alertasCrit"></div>
+      </div>
+      <div>
+        <div class="stitle">Atención / Informativas</div>
+        <div id="alertasOtras"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL CLIENTE -->
+<div class="moverlay" id="modalCliente">
+  <div class="modal">
+    <h3 id="modalClienteTitulo">Cliente</h3>
+    <label>Empresa / Nombre</label><input type="text" id="cl-nombre" placeholder="Ej: Metalúrgica del Norte SA">
+    <label>Rubro</label><input type="text" id="cl-rubro" placeholder="Ej: Metalúrgica, Servicios, Comercio">
+    <label>Servicio contratado</label>
+    <select id="cl-servicio">
+      <option value="Full (impuestos + sueldos)">Full (impuestos + sueldos)</option>
+      <option value="Solo impuestos">Solo impuestos</option>
+      <option value="Solo sueldos">Solo sueldos</option>
+      <option value="Monotributo">Monotributo</option>
+      <option value="Asesoramiento">Asesoramiento</option>
+    </select>
+    <label>Honorarios mensuales ($ARS)</label><input type="number" id="cl-honorarios" placeholder="150000">
+    <label>Estado</label>
+    <select id="cl-estado">
+      <option value="Al día">Al día</option>
+      <option value="Con deuda">Con deuda</option>
+      <option value="Nuevo">Nuevo</option>
+      <option value="Inactivo">Inactivo</option>
+    </select>
+    <label>Contador asignado</label><input type="text" id="cl-contador" placeholder="Ej: Dra. García">
+    <label>Notas</label><textarea id="cl-notas" rows="2" placeholder="Observaciones..."></textarea>
+    <div class="mactions">
+      <button class="mbtn-save" id="clienteSaveBtn">Guardar</button>
+      <button class="mbtn-del" id="clienteDelBtn" style="display:none">Eliminar</button>
+      <button class="mbtn-cancel" onclick="closeModal('modalCliente')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VENCIMIENTO -->
+<div class="moverlay" id="modalVenc">
+  <div class="modal">
+    <h3 id="modalVencTitulo">Vencimiento</h3>
+    <label>Impuesto / Obligación</label>
+    <select id="v-impuesto">
+      <option value="IVA">IVA</option>
+      <option value="Ganancias">Ganancias</option>
+      <option value="Bienes Personales">Bienes Personales</option>
+      <option value="Monotributo">Monotributo</option>
+      <option value="Cargas Sociales">Cargas Sociales</option>
+      <option value="Ingresos Brutos">Ingresos Brutos</option>
+      <option value="Sueldo">Liquidación de Sueldo</option>
+      <option value="Otro">Otro</option>
+    </select>
+    <label>Cliente</label><input type="text" id="v-cliente" placeholder="Nombre del cliente">
+    <label>Fecha de vencimiento</label><input type="date" id="v-fecha">
+    <label>Estado</label>
+    <select id="v-estado">
+      <option value="Pendiente">Pendiente</option>
+      <option value="Presentado">Presentado</option>
+      <option value="En proceso">En proceso</option>
+      <option value="Vencido">Vencido</option>
+    </select>
+    <label>Notas</label><input type="text" id="v-notas" placeholder="Observaciones opcionales">
+    <div class="mactions">
+      <button class="mbtn-save" id="vencSaveBtn">Guardar</button>
+      <button class="mbtn-del" id="vencDelBtn" style="display:none">Eliminar</button>
+      <button class="mbtn-cancel" onclick="closeModal('modalVenc')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ALERTA -->
+<div class="moverlay" id="modalAlerta">
+  <div class="modal">
+    <h3>Alerta</h3>
+    <label>Descripción</label><input type="text" id="al-texto" placeholder="Ej: Cliente con documentación faltante">
+    <label>Detalle</label><input type="text" id="al-meta" placeholder="Ej: Empresa XYZ — falta recibo de sueldo">
+    <label>Nivel</label>
+    <select id="al-nivel">
+      <option value="critico">Crítico</option>
+      <option value="atencion">Atención</option>
+      <option value="info">Informativo</option>
+    </select>
+    <div class="mactions">
+      <button class="mbtn-save" id="alertaSaveBtn">Guardar</button>
+      <button class="mbtn-del" id="alertaDelBtn" style="display:none">Eliminar</button>
+      <button class="mbtn-cancel" onclick="closeModal('modalAlerta')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── FECHA ──────────────────────────────────────────────
+const DIAS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const MES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const N=new Date();
+document.getElementById('fecha').textContent=DIAS[N.getDay()]+' '+N.getDate()+' de '+MES[N.getMonth()]+' de '+N.getFullYear();
+
+// ── STORAGE ────────────────────────────────────────────
+function sto(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function gto(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmt(n){return Number(n).toLocaleString('es-AR');}
+
+// ── DATOS INICIALES ────────────────────────────────────
+const D_CLIENTES=[
+  {nombre:'Metalúrgica Rossi SA',rubro:'Metalúrgica',servicio:'Full (impuestos + sueldos)',honorarios:280000,estado:'Al día',contador:'Dra. García',notas:'15 empleados'},
+  {nombre:'Distribuidora Núñez',rubro:'Comercio',servicio:'Solo impuestos',honorarios:120000,estado:'Al día',contador:'Dr. López',notas:'Responsable inscripto'},
+  {nombre:'Estudio Arq. Pereyra',rubro:'Servicios profesionales',servicio:'Monotributo',honorarios:45000,estado:'Con deuda',contador:'Dra. García',notas:'Adeuda 2 meses'},
+  {nombre:'Transporte Veloz SRL',rubro:'Logística',servicio:'Full (impuestos + sueldos)',honorarios:320000,estado:'Al día',contador:'Dr. López',notas:'8 choferes'},
+  {nombre:'Panadería Don Carlos',rubro:'Gastronomía',servicio:'Solo sueldos',honorarios:85000,estado:'Al día',contador:'Dra. García',notas:'6 empleados'},
+  {nombre:'Consultora Innovar',rubro:'Servicios',servicio:'Full (impuestos + sueldos)',honorarios:195000,estado:'Nuevo',contador:'Dr. López',notas:'Inicio junio 2026'},
+  {nombre:'Ferretería Central',rubro:'Comercio',servicio:'Solo impuestos',honorarios:95000,estado:'Con deuda',contador:'Dra. García',notas:'Pendiente de regularizar'},
+  {nombre:'Clínica Bienestar',rubro:'Salud',servicio:'Full (impuestos + sueldos)',honorarios:410000,estado:'Al día',contador:'Dr. López',notas:'25 profesionales'},
+];
+const D_VENCIMIENTOS=[
+  {impuesto:'IVA',cliente:'Metalúrgica Rossi SA',fecha:'2026-06-20',estado:'Pendiente',notas:''},
+  {impuesto:'IVA',cliente:'Distribuidora Núñez',fecha:'2026-06-20',estado:'Presentado',notas:''},
+  {impuesto:'Cargas Sociales',cliente:'Transporte Veloz SRL',fecha:'2026-06-23',estado:'Pendiente',notas:''},
+  {impuesto:'Monotributo',cliente:'Estudio Arq. Pereyra',fecha:'2026-06-25',estado:'Vencido',notas:'No pagó el mes anterior'},
+  {impuesto:'IVA',cliente:'Ferretería Central',fecha:'2026-06-20',estado:'En proceso',notas:'Aguardando datos del cliente'},
+  {impuesto:'Sueldo',cliente:'Panadería Don Carlos',fecha:'2026-06-30',estado:'Pendiente',notas:''},
+  {impuesto:'Ganancias',cliente:'Clínica Bienestar',fecha:'2026-07-10',estado:'Pendiente',notas:''},
+  {impuesto:'Ingresos Brutos',cliente:'Distribuidora Núñez',fecha:'2026-07-15',estado:'Pendiente',notas:''},
+  {impuesto:'Cargas Sociales',cliente:'Clínica Bienestar',fecha:'2026-06-23',estado:'Presentado',notas:''},
+  {impuesto:'Sueldo',cliente:'Metalúrgica Rossi SA',fecha:'2026-06-30',estado:'Pendiente',notas:''},
+];
+const D_ALERTAS=[
+  {texto:'Documentación faltante — DDJJ vence en 3 días',meta:'Ferretería Central — Falta: últimas 3 facturas de compra',nivel:'critico'},
+  {texto:'Cliente adeuda 2 meses de honorarios',meta:'Estudio Arq. Pereyra — Deuda: $90.000 ARS',nivel:'critico'},
+  {texto:'Monotributo vencido sin presentar',meta:'Estudio Arq. Pereyra — Vencimiento: 25/06/2026',nivel:'critico'},
+  {texto:'Nuevos topes de monotributo desde julio',meta:'Revisar categoría de 4 clientes monotributistas',nivel:'atencion'},
+  {texto:'Actualización de convenio colectivo — Transporte',meta:'Transporte Veloz SRL — Nuevo convenio vigente desde julio',nivel:'atencion'},
+  {texto:'Recordatorio: cierre de mes el 30/06',meta:'Preparar liquidaciones de junio para todos los clientes',nivel:'info'},
+];
+
+let clientes=gto('cont_clientes',D_CLIENTES);
+let vencimientos=gto('cont_venc',D_VENCIMIENTOS);
+let alertas=gto('cont_alertas',D_ALERTAS);
+
+// ── NAVEGACIÓN ─────────────────────────────────────────
+function showPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.hdr-nav-item').forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  renderPage(id);
+}
+function renderPage(id){
+  if(id==='dashboard') renderDashboard();
+  else if(id==='clientes') renderClientes();
+  else if(id==='vencimientos') renderVencimientos();
+  else if(id==='honorarios') renderHonorarios();
+  else if(id==='alertas') renderAlertas();
+}
+
+// ── DASHBOARD ──────────────────────────────────────────
+function renderDashboard(){
+  renderKPIs();
+  // Vencimientos próximos 30 días
+  const hoy=new Date();
+  const en30=new Date(hoy.getTime()+30*24*3600000);
+  const proximos=vencimientos.filter(v=>{
+    const d=new Date(v.fecha);
+    return d>=hoy&&d<=en30&&v.estado!=='Presentado';
+  }).slice(0,5);
+  document.getElementById('dashVenc').innerHTML=proximos.length?
+    proximos.map((v,i)=>{
+      const d=new Date(v.fecha);
+      const diff=Math.ceil((d-hoy)/(1000*60*60*24));
+      const cls=diff<=3?'urg':diff<=7?'prox':'ok';
+      return `<div class="venc-card ${cls}" onclick="showPage('vencimientos',document.querySelectorAll('.hdr-nav-item')[2])">
+        <div class="venc-impuesto">${esc(v.impuesto)}</div>
+        <div class="venc-cliente">${esc(v.cliente)}</div>
+        <div class="venc-fecha">Vence: ${v.fecha}</div>
+        <div class="venc-dias" style="color:${diff<=3?'var(--rojo)':diff<=7?'var(--amarillo)':'var(--verde)'};">${diff} días</div>
+      </div>`;
+    }).join('')
+    :'<div style="padding:14px;font-size:.75rem;color:var(--text-muted);">Sin vencimientos próximos</div>';
+
+  // Alertas críticas en dashboard
+  const crit=alertas.filter(a=>a.nivel==='critico').slice(0,4);
+  document.getElementById('dashAlertas').innerHTML=crit.map((a,i)=>`
+    <div class="alerta-item critico">
+      <div class="alerta-icon">🚨</div>
+      <div>
+        <div class="alerta-text">${esc(a.texto)}</div>
+        <div class="alerta-meta">${esc(a.meta)}</div>
+      </div>
+    </div>`).join('')||'<div style="padding:14px;font-size:.75rem;color:var(--text-muted);">Sin alertas críticas</div>';
+
+  // Tabla clientes en dashboard
+  document.getElementById('dashClientesTbody').innerHTML=clientes.slice(0,6).map((c,i)=>{
+    const vcl=vencimientos.filter(v=>v.cliente===c.nombre&&v.estado==='Pendiente');
+    const proxVenc=vcl.length?vcl.sort((a,b)=>new Date(a.fecha)-new Date(b.fecha))[0].fecha:'—';
+    const bClass={'Al día':'b-aldia','Con deuda':'b-deuda','Nuevo':'b-nuevo','Inactivo':'b-inactivo'};
+    return `<tr onclick="showPage('clientes',document.querySelectorAll('.hdr-nav-item')[1])">
+      <td><div style="font-weight:600;">${esc(c.nombre)}</div><div style="font-size:.62rem;color:var(--text-muted);">${esc(c.rubro)}</div></td>
+      <td>${esc(c.servicio)}</td>
+      <td style="color:${proxVenc!=='—'&&new Date(proxVenc)<new Date(new Date().getTime()+7*24*3600000)?'var(--rojo)':'var(--text)'};">${proxVenc}</td>
+      <td><span class="badge ${bClass[c.estado]||'b-aldia'}">${esc(c.estado)}</span></td>
+      <td style="font-weight:700;color:var(--naranja);">$${fmt(c.honorarios)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderKPIs(){
+  const total=clientes.length;
+  const alDia=clientes.filter(c=>c.estado==='Al día').length;
+  const conDeuda=clientes.filter(c=>c.estado==='Con deuda').length;
+  const vencPend=vencimientos.filter(v=>v.estado==='Pendiente'||v.estado==='Vencido').length;
+  const honTotal=clientes.reduce((s,c)=>s+(Number(c.honorarios)||0),0);
+  const items=[
+    {num:total,lbl:'Clientes activos',trend:'',cls:''},
+    {num:alDia,lbl:'Al día',trend:'✓ sin deuda',cls:'verde'},
+    {num:conDeuda,lbl:'Con deuda',trend:conDeuda>0?'⚠ requiere gestión':'',cls:conDeuda>0?'rojo':'verde'},
+    {num:vencPend,lbl:'Vencimientos pendientes',trend:vencPend>0?'próximos 30 días':'',cls:vencPend>0?'amarillo':'verde'},
+    {num:'$'+fmt(honTotal),lbl:'Honorarios mensuales',trend:'facturación total',cls:''},
+  ];
+  document.getElementById('kpiStrip').innerHTML=items.map(it=>`
+    <div class="kpi-card ${it.cls}">
+      <div class="kpi-num">${it.num}</div>
+      <div class="kpi-lbl">${it.lbl}</div>
+      ${it.trend?`<div class="kpi-trend ${it.cls==='verde'?'trend-up':it.cls==='rojo'?'trend-down':'trend-neutral'}">${it.trend}</div>`:''}
+    </div>`).join('');
+}
+
+// ── CLIENTES ───────────────────────────────────────────
+function renderClientes(){
+  const bClass={'Al día':'b-aldia','Con deuda':'b-deuda','Nuevo':'b-nuevo','Inactivo':'b-inactivo'};
+  document.getElementById('clientesTbody').innerHTML=clientes.map((c,i)=>`
+    <tr onclick="abrirModalCliente(${i})">
+      <td><div style="font-weight:600;">${esc(c.nombre)}</div>${c.notas?`<div style="font-size:.62rem;color:var(--text-muted);">${esc(c.notas)}</div>`:''}</td>
+      <td>${esc(c.rubro)}</td>
+      <td>${esc(c.servicio)}</td>
+      <td style="font-weight:700;color:var(--naranja);">$${fmt(c.honorarios)}</td>
+      <td><span class="badge ${bClass[c.estado]||'b-aldia'}">${esc(c.estado)}</span></td>
+      <td>${esc(c.contador)}</td>
+    </tr>`).join('');
+}
+
+let editCliIdx=null;
+function abrirModalCliente(i){
+  editCliIdx=i;
+  const c=i>=0?clientes[i]:{nombre:'',rubro:'',servicio:'Full (impuestos + sueldos)',honorarios:0,estado:'Al día',contador:'',notas:''};
+  document.getElementById('modalClienteTitulo').textContent=i>=0?'Editar cliente':'Nuevo cliente';
+  document.getElementById('cl-nombre').value=c.nombre;
+  document.getElementById('cl-rubro').value=c.rubro;
+  document.getElementById('cl-servicio').value=c.servicio;
+  document.getElementById('cl-honorarios').value=c.honorarios;
+  document.getElementById('cl-estado').value=c.estado;
+  document.getElementById('cl-contador').value=c.contador;
+  document.getElementById('cl-notas').value=c.notas||'';
+  document.getElementById('clienteDelBtn').style.display=i>=0?'':'none';
+  document.getElementById('modalCliente').classList.add('open');
+}
+document.getElementById('clienteSaveBtn').onclick=function(){
+  const obj={
+    nombre:document.getElementById('cl-nombre').value.trim(),
+    rubro:document.getElementById('cl-rubro').value.trim(),
+    servicio:document.getElementById('cl-servicio').value,
+    honorarios:parseFloat(document.getElementById('cl-honorarios').value)||0,
+    estado:document.getElementById('cl-estado').value,
+    contador:document.getElementById('cl-contador').value.trim(),
+    notas:document.getElementById('cl-notas').value.trim(),
+  };
+  if(!obj.nombre)return;
+  if(editCliIdx>=0)clientes[editCliIdx]=obj;else clientes.push(obj);
+  sto('cont_clientes',clientes);renderClientes();renderDashboard();closeModal('modalCliente');
+};
+document.getElementById('clienteDelBtn').onclick=function(){
+  if(editCliIdx>=0&&confirm('¿Eliminar este cliente?')){
+    clientes.splice(editCliIdx,1);sto('cont_clientes',clientes);renderClientes();renderDashboard();closeModal('modalCliente');
+  }
+};
+
+// ── VENCIMIENTOS ───────────────────────────────────────
+function renderVencimientos(){
+  const hoy=new Date();
+  document.getElementById('vencGrid').innerHTML=vencimientos.map((v,i)=>{
+    const d=new Date(v.fecha);
+    const diff=Math.ceil((d-hoy)/(1000*60*60*24));
+    const cls=v.estado==='Vencido'?'urg':diff<=7?'urg':diff<=20?'prox':'ok';
+    const bClass={Presentado:'b-presentado',Pendiente:'b-pendiente',Vencido:'b-vencido','En proceso':'b-proceso'};
+    return `<div class="venc-card ${cls}" onclick="abrirModalVenc(${i})">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div class="venc-impuesto">${esc(v.impuesto)}</div>
+        <span class="badge ${bClass[v.estado]||'b-pendiente'}">${esc(v.estado)}</span>
+      </div>
+      <div class="venc-cliente">${esc(v.cliente)}</div>
+      <div class="venc-fecha">📅 ${v.fecha}</div>
+      ${v.estado!=='Presentado'?`<div class="venc-dias" style="color:${diff<0?'var(--rojo)':diff<=7?'var(--rojo)':diff<=20?'var(--amarillo)':'var(--verde)'};">${diff<0?'Vencido hace '+Math.abs(diff)+' días':diff+' días'}</div>`:''}
+      ${v.notas?`<div style="font-size:.6rem;color:var(--text-muted);margin-top:4px;">${esc(v.notas)}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+let editVencIdx=null;
+function abrirModalVenc(i){
+  editVencIdx=i;
+  const v=i>=0?vencimientos[i]:{impuesto:'IVA',cliente:'',fecha:'',estado:'Pendiente',notas:''};
+  document.getElementById('modalVencTitulo').textContent=i>=0?'Editar vencimiento':'Nuevo vencimiento';
+  document.getElementById('v-impuesto').value=v.impuesto;
+  document.getElementById('v-cliente').value=v.cliente;
+  document.getElementById('v-fecha').value=v.fecha;
+  document.getElementById('v-estado').value=v.estado;
+  document.getElementById('v-notas').value=v.notas||'';
+  document.getElementById('vencDelBtn').style.display=i>=0?'':'none';
+  document.getElementById('modalVenc').classList.add('open');
+}
+document.getElementById('vencSaveBtn').onclick=function(){
+  const obj={
+    impuesto:document.getElementById('v-impuesto').value,
+    cliente:document.getElementById('v-cliente').value.trim(),
+    fecha:document.getElementById('v-fecha').value,
+    estado:document.getElementById('v-estado').value,
+    notas:document.getElementById('v-notas').value.trim(),
+  };
+  if(!obj.cliente||!obj.fecha)return;
+  if(editVencIdx>=0)vencimientos[editVencIdx]=obj;else vencimientos.push(obj);
+  sto('cont_venc',vencimientos);renderVencimientos();closeModal('modalVenc');
+};
+document.getElementById('vencDelBtn').onclick=function(){
+  if(editVencIdx>=0&&confirm('¿Eliminar este vencimiento?')){
+    vencimientos.splice(editVencIdx,1);sto('cont_venc',vencimientos);renderVencimientos();closeModal('modalVenc');
+  }
+};
+
+// ── HONORARIOS ─────────────────────────────────────────
+function renderHonorarios(){
+  const total=clientes.reduce((s,c)=>s+(Number(c.honorarios)||0),0);
+  const cobrado=clientes.filter(c=>c.estado==='Al día').reduce((s,c)=>s+(Number(c.honorarios)||0),0);
+  const pendiente=clientes.filter(c=>c.estado==='Con deuda').reduce((s,c)=>s+(Number(c.honorarios)||0),0);
+  const items=[
+    {label:'Facturación total mensual',val:'$'+fmt(total),color:'var(--naranja)'},
+    {label:'Cobrado / Al día',val:'$'+fmt(cobrado),color:'var(--verde)'},
+    {label:'Pendiente de cobro',val:'$'+fmt(pendiente),color:pendiente>0?'var(--rojo)':'var(--verde)'},
+    {label:'Clientes activos',val:clientes.filter(c=>c.estado!=='Inactivo').length,color:'var(--text)'},
+    {label:'Promedio por cliente',val:'$'+fmt(Math.round(total/clientes.length)),color:'var(--text-soft)'},
+  ];
+  document.getElementById('honResumen').innerHTML=`
+    <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:12px;">Resumen financiero</div>
+    ${items.map(it=>`<div class="hon-row"><span class="hon-label">${it.label}</span><span class="hon-val" style="color:${it.color};">${it.val}</span></div>`).join('')}`;
+  const bClass={'Al día':'b-aldia','Con deuda':'b-deuda','Nuevo':'b-nuevo','Inactivo':'b-inactivo'};
+  document.getElementById('honTbody').innerHTML=clientes.map((c,i)=>`
+    <tr onclick="abrirModalCliente(${i})">
+      <td><div style="font-weight:600;">${esc(c.nombre)}</div><div style="font-size:.62rem;color:var(--text-muted);">${esc(c.contador)}</div></td>
+      <td style="font-weight:700;color:var(--naranja);">$${fmt(c.honorarios)}</td>
+      <td><span class="badge ${bClass[c.estado]||'b-aldia'}">${esc(c.estado)}</span></td>
+      <td style="font-size:.72rem;color:var(--text-muted);">—</td>
+    </tr>`).join('');
+}
+
+// ── ALERTAS ────────────────────────────────────────────
+const alertaIcon={critico:'🚨',atencion:'⚠️',info:'ℹ️'};
+function renderAlertas(){
+  const crit=alertas.filter(a=>a.nivel==='critico');
+  const otras=alertas.filter(a=>a.nivel!=='critico');
+  const renderList=(list,el)=>{
+    document.getElementById(el).innerHTML=list.length?list.map((a,i)=>`
+      <div class="alerta-item ${a.nivel}" onclick="abrirModalAlerta(${alertas.indexOf(a)})">
+        <div class="alerta-icon">${alertaIcon[a.nivel]||'📌'}</div>
+        <div>
+          <div class="alerta-text">${esc(a.texto)}</div>
+          <div class="alerta-meta">${esc(a.meta)}</div>
+        </div>
+      </div>`).join('')
+      :'<div style="padding:14px;font-size:.75rem;color:var(--text-muted);">Sin alertas en esta categoría</div>';
+  };
+  renderList(crit,'alertasCrit');
+  renderList(otras,'alertasOtras');
+}
+
+let editAlertaIdx=null;
+function abrirModalAlerta(i){
+  editAlertaIdx=i;
+  const a=i>=0?alertas[i]:{texto:'',meta:'',nivel:'atencion'};
+  document.getElementById('al-texto').value=a.texto;
+  document.getElementById('al-meta').value=a.meta;
+  document.getElementById('al-nivel').value=a.nivel;
+  document.getElementById('alertaDelBtn').style.display=i>=0?'':'none';
+  document.getElementById('modalAlerta').classList.add('open');
+}
+document.getElementById('alertaSaveBtn').onclick=function(){
+  const obj={
+    texto:document.getElementById('al-texto').value.trim(),
+    meta:document.getElementById('al-meta').value.trim(),
+    nivel:document.getElementById('al-nivel').value,
+  };
+  if(!obj.texto)return;
+  if(editAlertaIdx>=0)alertas[editAlertaIdx]=obj;else alertas.push(obj);
+  sto('cont_alertas',alertas);renderAlertas();closeModal('modalAlerta');
+};
+document.getElementById('alertaDelBtn').onclick=function(){
+  if(editAlertaIdx>=0&&confirm('¿Eliminar esta alerta?')){
+    alertas.splice(editAlertaIdx,1);sto('cont_alertas',alertas);renderAlertas();closeModal('modalAlerta');
+  }
+};
+
+// ── MODAL HELPER ───────────────────────────────────────
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.moverlay').forEach(m=>{
+  m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
+});
+
+// ── INIT ───────────────────────────────────────────────
+renderDashboard();
+</script>
+</body>
+</html>
