@@ -390,7 +390,7 @@ let clientes=gto('cont_clientes',D_CLIENTES);
 let vencimientos=gto('cont_venc',D_VENCIMIENTOS);
 let alertas=gto('cont_alertas',D_ALERTAS);
 
-// ── NAVEGACIÓN ─────────────────────────────────────────
+// ── NAVEGACIÓN ────────────────────────────────────────────
 function showPage(id,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
@@ -406,7 +406,7 @@ function renderPage(id){
   else if(id==='alertas') renderAlertas();
 }
 
-// ── DASHBOARD ──────────────────────────────────────────
+// ── DASHBOARD ───────────────────────────────────────────────
 function renderDashboard(){
   renderKPIs();
   // Vencimientos próximos 30 días
@@ -477,8 +477,12 @@ function renderKPIs(){
     </div>`).join('');
 }
 
-// ── CLIENTES ───────────────────────────────────────────
+// ── CLIENTES ───────────────────────────────────────────────
 function renderClientes(){
+  if(!clientes.length){
+    document.getElementById('clientesTbody').innerHTML='<tr><td colspan="6" style="padding:24px;text-align:center;font-size:.78rem;color:var(--text-muted);">Todavía no hay clientes cargados en el estudio</td></tr>';
+    return;
+  }
   const bClass={'Al día':'b-aldia','Con deuda':'b-deuda','Nuevo':'b-nuevo','Inactivo':'b-inactivo'};
   document.getElementById('clientesTbody').innerHTML=clientes.map((c,i)=>`
     <tr onclick="abrirModalCliente(${i})">
@@ -526,8 +530,12 @@ document.getElementById('clienteDelBtn').onclick=function(){
   }
 };
 
-// ── VENCIMIENTOS ───────────────────────────────────────
+// ── VENCIMIENTOS ────────────────────────────────────────────
 function renderVencimientos(){
+  if(!vencimientos.length){
+    document.getElementById('vencGrid').innerHTML='<div style="grid-column:1/-1;padding:24px;text-align:center;font-size:.78rem;color:var(--text-muted);">No hay vencimientos próximos para mostrar</div>';
+    return;
+  }
   const hoy=new Date();
   document.getElementById('vencGrid').innerHTML=vencimientos.map((v,i)=>{
     const d=new Date(v.fecha);
@@ -578,7 +586,7 @@ document.getElementById('vencDelBtn').onclick=function(){
   }
 };
 
-// ── HONORARIOS ─────────────────────────────────────────
+// ── HONORARIOS ────────────────────────────────────────────
 function renderHonorarios(){
   const total=clientes.reduce((s,c)=>s+(Number(c.honorarios)||0),0);
   const cobrado=clientes.filter(c=>c.estado==='Al día').reduce((s,c)=>s+(Number(c.honorarios)||0),0);
@@ -603,7 +611,7 @@ function renderHonorarios(){
     </tr>`).join('');
 }
 
-// ── ALERTAS ────────────────────────────────────────────
+// ── ALERTAS ───────────────────────────────────────────────
 const alertaIcon={critico:'🚨',atencion:'⚠️',info:'ℹ️'};
 function renderAlertas(){
   const crit=alertas.filter(a=>a.nivel==='critico');
@@ -617,7 +625,7 @@ function renderAlertas(){
           <div class="alerta-meta">${esc(a.meta)}</div>
         </div>
       </div>`).join('')
-      :'<div style="padding:14px;font-size:.75rem;color:var(--text-muted);">Sin alertas en esta categoría</div>';
+      :'<div style="padding:14px;font-size:.75rem;color:var(--text-muted);">No hay alertas activas. Todo está al día</div>';
   };
   renderList(crit,'alertasCrit');
   renderList(otras,'alertasOtras');
