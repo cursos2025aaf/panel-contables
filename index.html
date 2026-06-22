@@ -156,6 +156,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="hdr-nav-item" onclick="showPage('vencimientos',this)">Vencimientos AFIP</div>
     <div class="hdr-nav-item" onclick="showPage('honorarios',this)">Honorarios</div>
     <div class="hdr-nav-item" onclick="showPage('alertas',this)">Alertas</div>
+    <div class="hdr-nav-item" onclick="showPage('comprobantes',this)">Comprobantes / Sueldos</div>
   </nav>
   <div class="hdr-fecha" id="fecha"></div>
 </div>
@@ -256,6 +257,42 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
   </div>
 
+  <!-- PAGINA: COMPROBANTES / SUELDOS -->
+  <div class="page" id="page-comprobantes">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div>
+        <div style="font-size:1rem;font-weight:800;">Comprobantes y liquidacion de sueldos</div>
+        <div style="font-size:.72rem;color:var(--text-muted);margin-top:2px;">Carga de comprobantes por cliente y estado de liquidacion de sueldos del mes</div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div>
+        <div class="stitle">Comprobantes</div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Cliente</th><th>Tipo</th><th>Periodo</th><th>Monto</th><th>Estado</th></tr></thead>
+            <tbody id="comprobTbody"></tbody>
+          </table>
+          <div class="actions-bar">
+            <button class="btn-add" onclick="abrirModalComprob(-1)">+ Agregar comprobante</button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="stitle">Liquidacion de sueldos</div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Cliente</th><th>Empleados</th><th>Monto liquidado</th><th>Estado</th></tr></thead>
+            <tbody id="sueldosTbody"></tbody>
+          </table>
+          <div class="actions-bar">
+            <button class="btn-add" onclick="abrirModalSueldo(-1)">+ Agregar liquidacion</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- MODAL CLIENTE -->
@@ -319,6 +356,57 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="mbtn-save" id="vencSaveBtn">Guardar</button>
       <button class="mbtn-del" id="vencDelBtn" style="display:none">Eliminar</button>
       <button class="mbtn-cancel" onclick="closeModal('modalVenc')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL COMPROBANTE -->
+<div class="moverlay" id="modalComprob">
+  <div class="modal">
+    <h3>Comprobante</h3>
+    <label>Cliente</label>
+    <select id="cp-cliente"></select>
+    <label>Tipo</label>
+    <select id="cp-tipo">
+      <option value="Factura">Factura</option>
+      <option value="Recibo">Recibo</option>
+      <option value="Comprobante de gasto">Comprobante de gasto</option>
+      <option value="Retencion">Retencion</option>
+    </select>
+    <label>Periodo</label><input type="text" id="cp-periodo" placeholder="Ej: Junio 2026">
+    <label>Monto</label><input type="number" id="cp-monto" placeholder="0">
+    <label>Estado</label>
+    <select id="cp-estado">
+      <option value="Pendiente de carga">Pendiente de carga</option>
+      <option value="Cargado">Cargado</option>
+      <option value="Validado">Validado</option>
+    </select>
+    <div class="mactions">
+      <button class="mbtn-save" id="comprobSaveBtn">Guardar</button>
+      <button class="mbtn-del" id="comprobDelBtn" style="display:none">Eliminar</button>
+      <button class="mbtn-cancel" onclick="closeModal('modalComprob')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SUELDO -->
+<div class="moverlay" id="modalSueldo">
+  <div class="modal">
+    <h3>Liquidacion de sueldos</h3>
+    <label>Cliente</label>
+    <select id="sl-cliente"></select>
+    <label>Empleados</label><input type="number" id="sl-empleados" placeholder="0">
+    <label>Monto liquidado</label><input type="number" id="sl-monto" placeholder="0">
+    <label>Estado</label>
+    <select id="sl-estado">
+      <option value="Pendiente">Pendiente</option>
+      <option value="Liquidado">Liquidado</option>
+      <option value="Pagado">Pagado</option>
+    </select>
+    <div class="mactions">
+      <button class="mbtn-save" id="sueldoSaveBtn">Guardar</button>
+      <button class="mbtn-del" id="sueldoDelBtn" style="display:none">Eliminar</button>
+      <button class="mbtn-cancel" onclick="closeModal('modalSueldo')">Cancelar</button>
     </div>
   </div>
 </div>
@@ -388,9 +476,24 @@ const D_ALERTAS=[
   {texto:'Recordatorio: cierre de mes el 30/06',meta:'Preparar liquidaciones de junio para todos los clientes',nivel:'info'},
 ];
 
+const D_COMPROBANTES=[
+  {cliente:'Metalurgica Rossi SA',tipo:'Factura',periodo:'Junio 2026',monto:280000,estado:'Cargado'},
+  {cliente:'Distribuidora Nunez',tipo:'Recibo',periodo:'Junio 2026',monto:120000,estado:'Pendiente de carga'},
+  {cliente:'Transporte Veloz SRL',tipo:'Comprobante de gasto',periodo:'Junio 2026',monto:45000,estado:'Validado'},
+  {cliente:'Clinica Bienestar',tipo:'Factura',periodo:'Junio 2026',monto:410000,estado:'Pendiente de carga'},
+];
+const D_SUELDOS=[
+  {cliente:'Metalurgica Rossi SA',empleados:15,monto:4200000,estado:'Liquidado'},
+  {cliente:'Transporte Veloz SRL',empleados:8,monto:1800000,estado:'Pendiente'},
+  {cliente:'Panaderia Don Carlos',empleados:6,monto:950000,estado:'Pagado'},
+  {cliente:'Clinica Bienestar',empleados:25,monto:6100000,estado:'Pendiente'},
+];
+
 let clientes=gto('cont_clientes',D_CLIENTES);
 let vencimientos=gto('cont_venc',D_VENCIMIENTOS);
 let alertas=gto('cont_alertas',D_ALERTAS);
+let comprobantes=gto('cont_comprob',D_COMPROBANTES);
+let sueldos=gto('cont_sueldos',D_SUELDOS);
 
 // ── NAVEGACIÓN ────────────────────────────────────────────
 function showPage(id,el){
@@ -406,6 +509,7 @@ function renderPage(id){
   else if(id==='vencimientos') renderVencimientos();
   else if(id==='honorarios') renderHonorarios();
   else if(id==='alertas') renderAlertas();
+  else if(id==='comprobantes') renderComprobantes();
 }
 
 // ── DASHBOARD ───────────────────────────────────────────────
@@ -656,6 +760,81 @@ document.getElementById('alertaSaveBtn').onclick=function(){
 document.getElementById('alertaDelBtn').onclick=function(){
   if(editAlertaIdx>=0&&confirm('¿Eliminar esta alerta?')){
     alertas.splice(editAlertaIdx,1);sto('cont_alertas',alertas);renderAlertas();closeModal('modalAlerta');
+  }
+};
+
+// ── COMPROBANTES / SUELDOS ──────────────────────────────
+function llenarSelectClientes(selId){
+  const sel=document.getElementById(selId);
+  sel.innerHTML=clientes.map(c=>`<option value="${esc(c.nombre)}">${esc(c.nombre)}</option>`).join('');
+}
+const estadoComprobClass={'Pendiente de carga':'rojo','Cargado':'amarillo','Validado':'verde'};
+const estadoSueldoClass={'Pendiente':'rojo','Liquidado':'amarillo','Pagado':'verde'};
+function renderComprobantes(){
+  const tb=document.getElementById('comprobTbody');
+  tb.innerHTML=comprobantes.map((c,i)=>`<tr onclick="abrirModalComprob(${i})">
+    <td>${esc(c.cliente)}</td><td>${esc(c.tipo)}</td><td>${esc(c.periodo)}</td>
+    <td>$${fmt(c.monto)}</td><td>${esc(c.estado)}</td></tr>`).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">Sin comprobantes cargados</td></tr>';
+  const tb2=document.getElementById('sueldosTbody');
+  tb2.innerHTML=sueldos.map((s,i)=>`<tr onclick="abrirModalSueldo(${i})">
+    <td>${esc(s.cliente)}</td><td>${s.empleados}</td><td>$${fmt(s.monto)}</td><td>${esc(s.estado)}</td></tr>`).join('')||'<tr><td colspan="4" style="text-align:center;color:var(--text-muted);">Sin liquidaciones cargadas</td></tr>';
+}
+let editComprobIdx=null;
+function abrirModalComprob(i){
+  editComprobIdx=i;
+  llenarSelectClientes('cp-cliente');
+  const c=i>=0?comprobantes[i]:{cliente:clientes[0]?clientes[0].nombre:'',tipo:'Factura',periodo:'',monto:'',estado:'Pendiente de carga'};
+  document.getElementById('cp-cliente').value=c.cliente;
+  document.getElementById('cp-tipo').value=c.tipo;
+  document.getElementById('cp-periodo').value=c.periodo;
+  document.getElementById('cp-monto').value=c.monto;
+  document.getElementById('cp-estado').value=c.estado;
+  document.getElementById('comprobDelBtn').style.display=i>=0?'':'none';
+  document.getElementById('modalComprob').classList.add('open');
+}
+document.getElementById('comprobSaveBtn').onclick=function(){
+  const obj={
+    cliente:document.getElementById('cp-cliente').value,
+    tipo:document.getElementById('cp-tipo').value,
+    periodo:document.getElementById('cp-periodo').value.trim(),
+    monto:Number(document.getElementById('cp-monto').value)||0,
+    estado:document.getElementById('cp-estado').value,
+  };
+  if(!obj.cliente||!obj.periodo)return;
+  if(editComprobIdx>=0)comprobantes[editComprobIdx]=obj;else comprobantes.push(obj);
+  sto('cont_comprob',comprobantes);renderComprobantes();closeModal('modalComprob');
+};
+document.getElementById('comprobDelBtn').onclick=function(){
+  if(editComprobIdx>=0&&confirm('¿Eliminar este comprobante?')){
+    comprobantes.splice(editComprobIdx,1);sto('cont_comprob',comprobantes);renderComprobantes();closeModal('modalComprob');
+  }
+};
+let editSueldoIdx=null;
+function abrirModalSueldo(i){
+  editSueldoIdx=i;
+  llenarSelectClientes('sl-cliente');
+  const s=i>=0?sueldos[i]:{cliente:clientes[0]?clientes[0].nombre:'',empleados:'',monto:'',estado:'Pendiente'};
+  document.getElementById('sl-cliente').value=s.cliente;
+  document.getElementById('sl-empleados').value=s.empleados;
+  document.getElementById('sl-monto').value=s.monto;
+  document.getElementById('sl-estado').value=s.estado;
+  document.getElementById('sueldoDelBtn').style.display=i>=0?'':'none';
+  document.getElementById('modalSueldo').classList.add('open');
+}
+document.getElementById('sueldoSaveBtn').onclick=function(){
+  const obj={
+    cliente:document.getElementById('sl-cliente').value,
+    empleados:Number(document.getElementById('sl-empleados').value)||0,
+    monto:Number(document.getElementById('sl-monto').value)||0,
+    estado:document.getElementById('sl-estado').value,
+  };
+  if(!obj.cliente)return;
+  if(editSueldoIdx>=0)sueldos[editSueldoIdx]=obj;else sueldos.push(obj);
+  sto('cont_sueldos',sueldos);renderComprobantes();closeModal('modalSueldo');
+};
+document.getElementById('sueldoDelBtn').onclick=function(){
+  if(editSueldoIdx>=0&&confirm('¿Eliminar esta liquidacion?')){
+    sueldos.splice(editSueldoIdx,1);sto('cont_sueldos',sueldos);renderComprobantes();closeModal('modalSueldo');
   }
 };
 
